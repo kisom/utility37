@@ -3,6 +3,8 @@
 
 I couldn't think of a better name, so this it.
 
+Current version: 1.0.0
+
 This tool operates on the idea of a chain of TODOs. That is, the user
 has a set of things to do today; anything that isn't done today should
 be carried over to the next day. It also operates on the idea of a
@@ -171,4 +173,5 @@ The selector can be either "finished" to select tasks based on their
 completion date, or "started" to select tasks based on their creation
 date.
 
-
+The workspaces are stored in ~/.config/util37/ and are serialised
+using Go's `encoding/gob` package.

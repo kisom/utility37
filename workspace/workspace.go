@@ -92,7 +92,7 @@ const configDirName = "utility37"
 // FileName returns the name for a workspace file.
 func FileName(name string) string {
 	basePath := os.Getenv("HOME")
-	return filepath.Join(basePath, ".config", name+".gob")
+	return filepath.Join(basePath, ".config", "util37", name+".gob")
 }
 
 // Marshal serialises a workspace.
@@ -117,7 +117,7 @@ func Unmarshal(in []byte, ws *Workspace) error {
 // ReadFile reads the named workspace from disk. If it doesn't exist,
 // and init is true, a new workspace will be created.
 func ReadFile(name string, init bool) (*Workspace, error) {
-	path := WorkspaceFileName(name)
+	path := FileName(name)
 	in, err := ioutil.ReadFile(path)
 	if err != nil {
 		if init && os.IsNotExist(err) {
@@ -139,6 +139,18 @@ func ReadFile(name string, init bool) (*Workspace, error) {
 // WriteFile stores the workspace to disk.
 func WriteFile(ws *Workspace) error {
 	out, err := Marshal(ws)
+	if err != nil {
+		return err
+	}
+
+	name := ws.FileName()
+	_, err = os.Stat(filepath.Dir(name))
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(name, 0700)
+		}
+	}
+
 	if err != nil {
 		return err
 	}
