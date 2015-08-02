@@ -41,9 +41,6 @@ type Task struct {
 	Priority          Priority
 }
 
-// DateFormat is the One True Format for displaying dates.
-const DateFormat = "2006-01-02"
-
 func (t *Task) String() string {
 	marker := " "
 	if t.Done {
@@ -92,8 +89,26 @@ func (ts TaskSet) Unfinished() TaskSet {
 	return tasks
 }
 
-// CompletedDuration returns the tasks completed within the last duration.
+// CompletedDuration returns the tasks completed within the last
+// duration, selecting on the completion date.
 func (ts TaskSet) CompletedDuration(dur time.Duration) TaskSet {
+	var tasks = TaskSet{}
+
+	started := time.Now().Add(-1 * dur)
+	for id, task := range ts {
+		if task.Done {
+			if task.Finished.After(started) {
+				tasks[id] = task
+			}
+		}
+	}
+
+	return tasks
+}
+
+// CreatedDuration returns the tasks completed within the last
+// duration, selecting on the creation date.
+func (ts TaskSet) CreatedDuration(dur time.Duration) TaskSet {
 	var tasks = TaskSet{}
 
 	started := time.Now().Add(-1 * dur)
@@ -109,13 +124,29 @@ func (ts TaskSet) CompletedDuration(dur time.Duration) TaskSet {
 }
 
 // CompletedRange returns a list of tasks completed within the
-// specified times.
+// specified times, selecting on the completion date.
 func (ts TaskSet) CompletedRange(start, end time.Time) TaskSet {
 	var tasks = TaskSet{}
 
 	for id, task := range ts {
 		if task.Done {
-			if task.Created.After(start) && task.Finished.Before(end) {
+			if task.Finished.After(start) && task.Finished.Before(end) {
+				tasks[id] = task
+			}
+		}
+	}
+
+	return tasks
+}
+
+// CreatedRange returns a list of tasks completed within the
+// specified times, selecting on the created date.
+func (ts TaskSet) CreatedRange(start, end time.Time) TaskSet {
+	var tasks = TaskSet{}
+
+	for id, task := range ts {
+		if task.Done {
+			if task.Created.After(start) && task.Created.Before(end) {
 				tasks[id] = task
 			}
 		}

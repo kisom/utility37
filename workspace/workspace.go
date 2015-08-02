@@ -9,16 +9,14 @@ import (
 	"time"
 )
 
-var day = 24 * time.Hour
-
 // Today returns a time.Time for today.
 func Today() time.Time {
-	return time.Now().Truncate(day)
+	return time.Now().Truncate(DurationDay)
 }
 
 // Day truncates the time value to the day it occurred on.
 func Day(t time.Time) time.Time {
-	return t.Truncate(day)
+	return t.Truncate(DurationDay)
 }
 
 // An Entry contains a set of tasks for the day.
