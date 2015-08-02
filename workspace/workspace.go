@@ -84,13 +84,13 @@ func (ws *Workspace) NewEntry() uint64 {
 
 // FileName returns the workspace's filename.
 func (ws *Workspace) FileName() string {
-	return WorkspaceFileName(ws.Name)
+	return FileName(ws.Name)
 }
 
 const configDirName = "utility37"
 
-// WorkspaceFileName returns the name for a workspace file.
-func WorkspaceFileName(name string) string {
+// FileName returns the name for a workspace file.
+func FileName(name string) string {
 	basePath := os.Getenv("HOME")
 	return filepath.Join(basePath, ".config", name+".gob")
 }

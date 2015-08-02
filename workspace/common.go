@@ -1,3 +1,5 @@
+// Package workspace contains the common code for handling TODO
+// workspaces.
 package workspace
 
 import (
@@ -10,11 +12,18 @@ import (
 const DateFormat = "2006-01-02"
 
 var (
-	DurationDay   = 24 * time.Hour
-	DurationWeek  = 7 * DurationDay
+	// DurationDay is one day.
+	DurationDay = 24 * time.Hour
+
+	// DurationWeek is one week.
+	DurationWeek = 7 * DurationDay
+
+	// DurationMonth is one month.
 	DurationMonth = 4 * DurationWeek
 )
 
+// Wrap wraps the string s to the maximum line length given. Each line
+// will be prefaced with leading.
 func Wrap(s, leading string, max int) string {
 	buf := &bytes.Buffer{}
 	doc.ToText(buf, s, leading, "", max)

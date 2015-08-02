@@ -22,14 +22,17 @@ func readline() string {
 	return strings.TrimSpace(line)
 }
 
+// Words represents a list of words.
 type Words struct {
 	words []string
 }
 
+// Len returns the length of the wordlist.
 func (w Words) Len() int {
 	return len(w.words)
 }
 
+// SplitWords splits a string into a list of words.
 func SplitWords(s string) *Words {
 	words := strings.Split(s, " ")
 	for i := range words {
@@ -39,6 +42,8 @@ func SplitWords(s string) *Words {
 	return &Words{words: words}
 }
 
+// Pop returns the first word in the word list and removes it from the
+// list.
 func (w *Words) Pop() (string, bool) {
 	if w.Len() > 0 {
 		word := w.words[0]

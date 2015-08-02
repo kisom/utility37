@@ -43,6 +43,7 @@ func (pri Priority) String() string {
 	return s
 }
 
+// PriorityFromString returns the appropriate Priority from a string.
 func PriorityFromString(ps string) Priority {
 	var pri Priority
 	var s string
