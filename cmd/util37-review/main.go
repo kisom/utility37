@@ -55,7 +55,7 @@ func usage() {
 time range.
 
 Usage:
-util37-review [-h] [-l] [-m] [-p priority] workspace selector query...
+%s [-h] [-l] [-m] [-p priority] workspace selector query...
 
 Flags:
     -h                       Print this usage message.
@@ -90,7 +90,7 @@ query follows one of the following forms:
                              date and the to date.
 
 All dates should have the form YYYY-MM-DD.
-`, name, workspace.PriorityStrings)
+`, name, name, workspace.PriorityStrings)
 }
 
 // since dumps the tasks completed within a recent duration from today.
@@ -157,7 +157,7 @@ func taskRange(ws *workspace.Workspace, words *Words, selectStarted bool, priori
 	word, _ := words.Pop()       // Length already checked
 	dateString, _ := words.Pop() // Length already checked
 
-	if word != "start" {
+	if word != "from" {
 		die.With(`Expected "from <date> to <date>"`)
 	}
 

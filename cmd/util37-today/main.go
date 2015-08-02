@@ -30,7 +30,11 @@ Flags:
 }
 
 func asMarkdown(tasks []*workspace.Task, long bool) {
-	fmt.Println("## TODO for ", workspace.Today().Format(workspace.DateFormat))
+	fmt.Printf("## TODO %s (%d tasks)\n",
+		workspace.Today().Format(workspace.DateFormat),
+		len(tasks),
+	)
+
 	for _, task := range tasks {
 		fmt.Printf("#### %s\n", task)
 		if long {
@@ -66,7 +70,8 @@ func main() {
 	if markdown {
 		asMarkdown(tasks, long)
 	} else {
-		fmt.Printf("TODO %s (%d tasks):\n", workspace.Today().Format(workspace.DateFormat),
+		fmt.Printf("TODO %s (%d tasks):\n",
+			workspace.Today().Format(workspace.DateFormat),
 			len(tasks))
 		for _, task := range tasks {
 			fmt.Println("\t", task)

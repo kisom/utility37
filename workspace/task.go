@@ -181,7 +181,7 @@ func (ts TaskSet) CompletedRange(start, end time.Time) TaskSet {
 
 	for id, task := range ts {
 		if task.Done {
-			if task.Finished.After(start) && task.Finished.Before(end) {
+			if after(task.Finished, start) && before(task.Finished, end) {
 				tasks[id] = task
 			}
 		}

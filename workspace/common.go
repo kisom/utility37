@@ -23,10 +23,27 @@ func Wrap(s, leading string, max int) string {
 
 // Today returns a time.Time for today.
 func Today() time.Time {
-	return time.Now().Truncate(DurationDay)
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(),
+		0, 0, 0, 0, time.Local)
 }
 
 // Day truncates the time value to the day it occurred on.
 func Day(t time.Time) time.Time {
-	return t.Truncate(DurationDay)
+	return time.Date(t.Year(), t.Month(), t.Day(),
+		0, 0, 0, 0, time.Local)
+}
+
+func before(t1, t2 time.Time) bool {
+	t1d := Day(t1)
+	t2d := Day(t2)
+
+	return t1d.Equal(t2d) || t1d.Before(t2d)
+}
+
+func after(t1, t2 time.Time) bool {
+	t1d := Day(t1)
+	t2d := Day(t2)
+
+	return t1d.Equal(t2d) || t1d.After(t2d)
 }

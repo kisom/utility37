@@ -69,7 +69,9 @@ func main() {
 
 	for {
 		tasks := ws.EntryTasks(entryID).Sort()
-		fmt.Println("Current TODO:")
+		fmt.Printf("TODO %s (%d tasks):\n",
+			workspace.Today().Format(workspace.DateFormat),
+			len(tasks))
 		for _, task := range tasks {
 			fmt.Println(task)
 		}
