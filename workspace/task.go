@@ -52,7 +52,7 @@ func (t *Task) String() string {
 		endDate = fmt.Sprintf(", completed %s", t.Finished.Format(DateFormat))
 	}
 
-	return fmt.Sprintf("\t[%s] %s (%s) - %s%s", marker, t.Title, t.Priority,
+	return fmt.Sprintf("[%s] %s (%s) - %s%s", marker, t.Title, t.Priority,
 		t.Created.Format(DateFormat), endDate)
 }
 
