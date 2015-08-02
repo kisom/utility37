@@ -9,26 +9,63 @@ import (
 type Priority uint8
 
 const (
-	PriorityLow = iota + 1
+	// PriorityUnknown is an invalid priority.
+	PriorityUnknown Priority = iota
+
+	// PriorityLow is intended for "rainy-day" tasks.
+	PriorityLow
+
+	// PriorityNormal is the default priority.
 	PriorityNormal
+
+	// PriorityHigh is intended for tasks that should be done
+	// before normal-priority tasks.
 	PriorityHigh
+
+	// PriorityUrgent is intended for time-sensitive tasks.
 	PriorityUrgent
 )
 
-func (pri Priority) String() string {
-	switch pri {
-	case PriorityLow:
-		return "L"
-	case PriorityNormal:
-		return "N"
-	case PriorityHigh:
-		return "H"
-	case PriorityUrgent:
-		return "!"
-	default:
-		return "?"
-	}
+var priorityStrings = map[Priority]string{
+	PriorityUnknown: "?",
+	PriorityLow:     "L",
+	PriorityNormal:  "N",
+	PriorityHigh:    "H",
+	PriorityUrgent:  "!",
 }
+
+// String provides a string representation for the Priority type.
+func (pri Priority) String() string {
+	s, ok := priorityStrings[pri]
+	if !ok {
+		s = priorityStrings[PriorityUnknown]
+	}
+	return s
+}
+
+func PriorityFromString(ps string) Priority {
+	var pri Priority
+	var s string
+
+	for pri, s = range priorityStrings {
+		if s == ps {
+			return pri
+		}
+	}
+
+	return PriorityUnknown
+}
+
+// PriorityStrings is a list of priority strings and their values,
+// useful for usage messages.
+var PriorityStrings = `Priority specifiers:
+
+        ?       Unknown
+        L       Low
+        N       Normal
+        H       High
+        !       Urgent
+`
 
 // A Task is a TODO item.
 type Task struct {
@@ -41,6 +78,7 @@ type Task struct {
 	Priority          Priority
 }
 
+// String provides a default representation for a task.
 func (t *Task) String() string {
 	marker := " "
 	if t.Done {
@@ -75,6 +113,19 @@ func (t *Task) MarkDone() {
 
 // A TaskSet contains a set of tasks.
 type TaskSet map[uint64]*Task
+
+// Filter returns all the tasks with at least the given priority.
+func (ts TaskSet) Filter(pri Priority) TaskSet {
+	var tasks = TaskSet{}
+
+	for id, task := range ts {
+		if task.Priority >= pri {
+			tasks[id] = task
+		}
+	}
+
+	return tasks
+}
 
 // Unfinished returns the subset of tasks that aren't completed.
 func (ts TaskSet) Unfinished() TaskSet {
