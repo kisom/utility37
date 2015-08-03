@@ -96,6 +96,16 @@ func (t *Task) String() string {
 		t.Created.Format(DateFormat), endDate)
 }
 
+// TimeTaken returns a string indicating how long the task took.
+func (t *Task) TimeTaken() string {
+	if t.Done {
+		dur := t.Finished.Sub(t.Created).Hours()
+		dur /= 24
+		return fmt.Sprintf("%.0fd", dur)
+	}
+	return ""
+}
+
 // NewTask returns a new incomplete task started now.
 func NewTask(id uint64, title string) *Task {
 	return &Task{

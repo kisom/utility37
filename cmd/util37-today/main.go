@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 
 	"github.com/kisom/goutils/die"
 	"github.com/kisom/utility37/workspace"
@@ -24,14 +22,10 @@ Flags:
     -i                  Initialise a new workspace if needed.
     -l                  Print task annotations (long format).
     -m                  Display tasks in markdown format.
-    -p priority         Filter tasks by priority; only tasks with at least
-                        the specified priority.
-
-%s
 
 The search string, if provided, should be a regular expression that
 will be used to filter out tasks.
-`, name, name, workspace.PriorityStrings)
+`, name, name)
 }
 
 func asMarkdown(tasks []*workspace.Task, long bool) {
@@ -52,35 +46,30 @@ func asMarkdown(tasks []*workspace.Task, long bool) {
 
 func main() {
 	var shouldInit, long, markdown bool
-	var priority = workspace.PriorityNormal.String()
 
 	flag.Usage = usage
 	flag.BoolVar(&shouldInit, "i", false, "Initialise new workspace if needed.")
 	flag.BoolVar(&long, "l", false, "Show annotations of each task.")
 	flag.BoolVar(&markdown, "m", false, "Print log as markdown.")
-	flag.StringVar(&priority, "p", priority, "Filter tasks by priority.")
 	flag.Parse()
 
 	if flag.NArg() == 0 {
 		die.With("Workspace name is required.")
 	}
 
-	pri := workspace.PriorityFromString(priority)
-
 	ws, err := workspace.ReadFile(flag.Arg(0), shouldInit)
 	die.If(err)
 
-	searchString := `.*`
-	if flag.NArg() > 1 {
-		args := flag.Args()
-		searchString = strings.Join(args[1:], " ")
+	var c *workspace.FilterChain
+	if flag.NArg() == 1 {
+		c, err = workspace.ProcessQuery([]string{}, workspace.StatusUncompleted)
+	} else {
+		c, err = workspace.ProcessQuery(flag.Args()[1:], workspace.StatusUncompleted)
 	}
-
-	re, err := regexp.Compile(searchString)
 	die.If(err)
 
 	entryID := ws.NewEntry()
-	tasks := ws.EntryTasks(entryID).Unfinished().FilterPriority(pri).Sort()
+	tasks := c.Filter(ws.EntryTasks(entryID)).Sort()
 	if markdown {
 		asMarkdown(tasks, long)
 	} else {
@@ -88,15 +77,12 @@ func main() {
 			workspace.Today().Format(workspace.DateFormat),
 			len(tasks))
 		for _, task := range tasks {
-			if !re.MatchString(task.Title) {
-				continue
-			}
 			fmt.Println("\t", task)
 			if long {
 				if len(task.Tags) > 0 {
-					fmt.Printf("\t\tTags: %s\n",
-						strings.Join(task.Tags, ", "))
+					fmt.Printf("\t\tTags: %s\n", task.TagString())
 				}
+
 				for _, note := range task.Notes {
 					fmt.Println(workspace.Wrap("+ "+note, "\t\t", 72))
 				}

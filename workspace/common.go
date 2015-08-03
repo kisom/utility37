@@ -68,6 +68,18 @@ func contains(s string, ss []string) bool {
 	return false
 }
 
+func normalize(in []string) []string {
+	out := make([]string, 0, len(in))
+	for i := range in {
+		token := strings.TrimSpace(in[i])
+		if len(token) != 0 {
+			out = append(out, token)
+		}
+	}
+
+	return out
+}
+
 // Tokenize splits the string by the given character and returns
 // trimmed tokens.
 func Tokenize(s, split string) []string {
@@ -77,10 +89,5 @@ func Tokenize(s, split string) []string {
 		return nil
 	}
 
-	tokens := make([]string, len(ss))
-	for i := range ss {
-		tokens[i] = strings.TrimSpace(ss[i])
-	}
-
-	return tokens
+	return normalize(ss)
 }

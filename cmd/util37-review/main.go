@@ -1,58 +1,14 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/kisom/goutils/die"
 	"github.com/kisom/utility37/workspace"
 )
-
-var stdin = bufio.NewReader(os.Stdin)
-
-func readline() string {
-	line, err := stdin.ReadString('\n')
-	die.If(err)
-
-	return strings.TrimSpace(line)
-}
-
-// Words represents a list of words.
-type Words struct {
-	words []string
-}
-
-// Len returns the length of the wordlist.
-func (w Words) Len() int {
-	return len(w.words)
-}
-
-// SplitWords splits a string into a list of words.
-func SplitWords(s string) *Words {
-	words := strings.Split(s, " ")
-	for i := range words {
-		words[i] = strings.TrimSpace(words[i])
-	}
-
-	return &Words{words: words}
-}
-
-// Pop returns the first word in the word list and removes it from the
-// list.
-func (w *Words) Pop() (string, bool) {
-	if w.Len() > 0 {
-		word := w.words[0]
-		w.words = w.words[1:]
-		return word, true
-	}
-
-	return "", false
-}
 
 func usage() {
 	name := filepath.Base(os.Args[0])
@@ -98,111 +54,14 @@ All dates should have the form YYYY-MM-DD.
 `, name, name, workspace.PriorityStrings)
 }
 
-// since dumps the tasks completed within a recent duration from today.
-func since(ws *workspace.Workspace, words *Words, selectStarted bool, priority string) (workspace.TaskSet, string) {
-	durString, _ := words.Pop() // Already checked the length.
-
-	dur, err := time.ParseDuration(durString)
-	if err != nil {
-		// This needs tidying.
-		switch durString {
-		case "week":
-			dur = workspace.DurationWeek
-			err = nil
-		case "2w":
-			dur = 2 * workspace.DurationWeek
-			err = nil
-		case "month":
-			dur = 2 * workspace.DurationMonth
-			err = nil
-		}
-	}
-	die.If(err)
-
-	timeRange := "in the last " + durString
-	var tasks workspace.TaskSet
-	if selectStarted {
-		tasks = ws.Tasks.CreatedDuration(dur)
-	} else {
-		tasks = ws.Tasks.CompletedDuration(dur)
-	}
-
-	pri := workspace.PriorityFromString(priority)
-	tasks = tasks.FilterPriority(pri)
-	return tasks, timeRange
-}
-
-func start(ws *workspace.Workspace, words *Words, selectStarted bool, priority string) (workspace.TaskSet, string) {
-	word, _ := words.Pop()       // Length already checked
-	dateString, _ := words.Pop() // Length already checked
-
-	if word != "since" {
-		die.With(`Expected "since <date>"`)
-	}
-
-	start, err := time.Parse(workspace.DateFormat, dateString)
-	die.If(err)
-
-	dur := time.Now().Sub(start)
-
-	timeRange := "since " + dateString
-	var tasks workspace.TaskSet
-	if selectStarted {
-		tasks = ws.Tasks.CreatedDuration(dur)
-	} else {
-		tasks = ws.Tasks.CompletedDuration(dur)
-	}
-
-	pri := workspace.PriorityFromString(priority)
-	tasks = tasks.FilterPriority(pri)
-	return tasks, timeRange
-}
-
-func taskRange(ws *workspace.Workspace, words *Words, selectStarted bool, priority string) (workspace.TaskSet, string) {
-	word, _ := words.Pop()       // Length already checked
-	dateString, _ := words.Pop() // Length already checked
-
-	if word != "from" {
-		die.With(`Expected "from <date> to <date>"`)
-	}
-
-	start, err := time.Parse(workspace.DateFormat, dateString)
-	die.If(err)
-	timeRange := "between " + dateString
-
-	word, _ = words.Pop()       // Length already checked
-	dateString, _ = words.Pop() // Length already checked
-
-	end, err := time.Parse(workspace.DateFormat, dateString)
-	die.If(err)
-	timeRange += " and "
-	timeRange += dateString
-
-	var tasks workspace.TaskSet
-	if selectStarted {
-		tasks = ws.Tasks.CreatedRange(start, end)
-	} else {
-		tasks = ws.Tasks.CompletedRange(start, end)
-	}
-
-	pri := workspace.PriorityFromString(priority)
-	tasks = tasks.FilterPriority(pri)
-	return tasks, timeRange
-}
-
-func header(timeRange string, selectStarted bool) string {
-	h := "Completed tasks "
-	if selectStarted {
-		h += "started "
-	} else {
-		h += "finished "
-	}
+func header(timeRange string) string {
+	h := "Completed tasks finished "
 	h += timeRange
 	return h
 }
 
-func asMarkdown(tasks []*workspace.Task, long, selectStarted bool, timeRange string) {
-	fmt.Println("## " + header(timeRange, selectStarted))
+func asMarkdown(tasks []*workspace.Task, long bool, timeRange string) {
+	fmt.Println("## " + header(timeRange))
 
 	if len(tasks) == 0 {
 		fmt.Println("No tasks found.")
@@ -211,7 +70,7 @@ func asMarkdown(tasks []*workspace.Task, long, selectStarted bool, timeRange str
 			fmt.Printf("#### %s\n", task)
 			if long {
 				fmt.Printf("+ Completed in %s\n",
-					task.Finished.Sub(task.Created))
+					task.TimeTaken())
 				for _, note := range task.Notes {
 					fmt.Println(workspace.Wrap("+ "+note, "", 72))
 				}
@@ -234,75 +93,38 @@ func main() {
 		return
 	}
 
-	words := &Words{words: flag.Args()}
-
-	name, ok := words.Pop()
-	if !ok {
+	if flag.NArg() < 1 {
 		die.With("Workspace name is required.")
 	}
+	name := flag.Arg(0)
+
+	var err error
+	var c *workspace.FilterChain
+	if flag.NArg() == 1 {
+		c, err = workspace.ProcessQuery([]string{"last:2w"}, workspace.StatusCompleted)
+	} else {
+		c, err = workspace.ProcessQuery(flag.Args()[1:], workspace.StatusCompleted)
+	}
+	die.If(err)
 
 	ws, err := workspace.ReadFile(name, false)
 	die.If(err)
 
-	word, ok := words.Pop()
-	if !ok {
-		die.With(`Selector is required; this should be either started or finished.
-	started:  select tasks based on their start date
-	finished: select tasks based on their completion date
-`)
-	}
-
-	var selectStarted bool
-
-	switch word {
-	case "started":
-		selectStarted = true
-	case "finished": // Nothing to do
-	default:
-		fmt.Println("invalid selector:", word)
-		die.With(`Selector is required; this should be either started or finished.
-	started:  select tasks based on their start date
-	finished: select tasks based on their completion date
-`)
-	}
-
-	var tasks workspace.TaskSet
-	var timeRange string
-	switch words.Len() {
-	case 0:
-		// No date range is given, default to two weeks. Reset
-		// the word list and fall-through.
-		words = &Words{words: []string{"2w"}}
-		fallthrough // This is intentional.
-	case 1:
-		// If only one word is left, it is a range going
-		// backwards from today; e.g., "month".
-		tasks, timeRange = since(ws, words, selectStarted, priority)
-	case 2:
-		// If three words are left, the first should be
-		// "since", followed by a date.
-		tasks, timeRange = start(ws, words, selectStarted, priority)
-	case 4:
-		// Otherwise, we're expecting an input line of the
-		// form "start <date> end <date>".
-		tasks, timeRange = taskRange(ws, words, selectStarted, priority)
-	default:
-		usage()
-		return
-	}
-
+	tasks := c.Filter(ws.Tasks)
 	sorted := tasks.Sort()
 
 	if markdown {
-		asMarkdown(sorted, long, selectStarted, timeRange)
+		asMarkdown(sorted, long, c.TimeRange())
 	} else {
-		fmt.Println(header(timeRange, selectStarted))
+		fmt.Println(header(c.TimeRange()))
 		if len(tasks) > 0 {
 			for i, task := range sorted {
 				fmt.Println(sorted[i])
 				if long {
-					fmt.Printf("\tCompletion time: %s\n",
-						task.Finished.Sub(task.Created))
+					fmt.Printf("\tCompletion time: %s\n", task.TimeTaken())
+					if len(task.Tags) > 0 {
+						fmt.Println("Tags:", task.TagString())
+					}
 					for _, note := range sorted[i].Notes {
 						fmt.Println(workspace.Wrap("+ "+note, "\t", 72))
 					}
