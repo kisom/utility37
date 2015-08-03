@@ -2,6 +2,7 @@ package workspace
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -110,6 +111,11 @@ func NewTask(id uint64, title string) *Task {
 func (t *Task) MarkDone() {
 	t.Done = true
 	t.Finished = time.Now()
+}
+
+// TagString returns a string containing all the tags in the task.
+func (t *Task) TagString() string {
+	return strings.Join(t.Tags, ", ")
 }
 
 // A TaskSet contains a set of tasks.
