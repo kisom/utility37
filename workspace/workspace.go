@@ -85,6 +85,7 @@ func (ws *Workspace) NewEntry() uint64 {
 	return id
 }
 
+// Tag adds a tag to the specified task.
 func (ws *Workspace) Tag(id uint64, tag string) bool {
 	task, ok := ws.Tasks[id]
 	if !ok {
