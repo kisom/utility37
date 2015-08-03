@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 )
 
@@ -28,6 +29,8 @@ type Workspace struct {
 	Entries map[uint64]*Entry
 
 	Tasks TaskSet
+
+	Tags map[string][]uint64
 }
 
 // NewWorkspace initialises a new workspace.
@@ -80,6 +83,36 @@ func (ws *Workspace) NewEntry() uint64 {
 	}
 
 	return id
+}
+
+func (ws *Workspace) Tag(id uint64, tag string) bool {
+	task, ok := ws.Tasks[id]
+	if !ok {
+		return false
+	}
+
+	for i := range task.Tags {
+		if task.Tags[i] == tag {
+			return true
+		}
+	}
+
+	tags, ok := ws.Tags[tag]
+	if ok {
+		for i := range tags {
+			if tags[i] == id {
+				return true
+			}
+		}
+	}
+
+	tags = append(tags, id)
+	ws.Tags[tag] = tags
+
+	task.Tags = append(task.Tags, tag)
+	sort.Strings(task.Tags)
+	ws.Tasks[id] = task
+	return true
 }
 
 // FileName returns the workspace's filename.
