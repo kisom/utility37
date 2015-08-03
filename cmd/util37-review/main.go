@@ -128,7 +128,7 @@ func since(ws *workspace.Workspace, words *Words, selectStarted bool, priority s
 	}
 
 	pri := workspace.PriorityFromString(priority)
-	tasks = tasks.Filter(pri)
+	tasks = tasks.FilterPriority(pri)
 	return tasks, timeRange
 }
 
@@ -154,7 +154,7 @@ func start(ws *workspace.Workspace, words *Words, selectStarted bool, priority s
 	}
 
 	pri := workspace.PriorityFromString(priority)
-	tasks = tasks.Filter(pri)
+	tasks = tasks.FilterPriority(pri)
 	return tasks, timeRange
 }
 
@@ -186,7 +186,7 @@ func taskRange(ws *workspace.Workspace, words *Words, selectStarted bool, priori
 	}
 
 	pri := workspace.PriorityFromString(priority)
-	tasks = tasks.Filter(pri)
+	tasks = tasks.FilterPriority(pri)
 	return tasks, timeRange
 }
 

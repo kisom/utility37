@@ -80,7 +80,7 @@ func main() {
 	die.If(err)
 
 	entryID := ws.NewEntry()
-	tasks := ws.EntryTasks(entryID).Unfinished().Filter(pri).Sort()
+	tasks := ws.EntryTasks(entryID).Unfinished().FilterPriority(pri).Sort()
 	if markdown {
 		asMarkdown(tasks, long)
 	} else {

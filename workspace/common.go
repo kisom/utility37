@@ -58,6 +58,16 @@ func after(t1, t2 time.Time) bool {
 	return t1d.Equal(t2d) || t1d.After(t2d)
 }
 
+func contains(s string, ss []string) bool {
+	for i := range ss {
+		if ss[i] == s {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Tokenize splits the string by the given character and returns
 // trimmed tokens.
 func Tokenize(s, split string) []string {

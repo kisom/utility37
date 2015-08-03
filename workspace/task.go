@@ -115,12 +115,25 @@ func (t *Task) MarkDone() {
 // A TaskSet contains a set of tasks.
 type TaskSet map[uint64]*Task
 
-// Filter returns all the tasks with at least the given priority.
-func (ts TaskSet) Filter(pri Priority) TaskSet {
+// FilterPriority returns all the tasks with at least the given priority.
+func (ts TaskSet) FilterPriority(pri Priority) TaskSet {
 	var tasks = TaskSet{}
 
 	for id, task := range ts {
 		if task.Priority >= pri {
+			tasks[id] = task
+		}
+	}
+
+	return tasks
+}
+
+// FilterTag returns all tasks with the given tag.
+func (ts TaskSet) FilterTag(tag string) TaskSet {
+	var tasks = TaskSet{}
+
+	for id, task := range ts {
+		if contains(tag, task.Tags) {
 			tasks[id] = task
 		}
 	}
