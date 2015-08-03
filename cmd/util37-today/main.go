@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/kisom/goutils/die"
 	"github.com/kisom/utility37/workspace"
@@ -15,7 +17,7 @@ func usage() {
 	fmt.Printf(`%s is a utility to report the unfinished tasks for the day.
 
 Usage:
-%s [-i] [-l] [-m] [-p priority] workspace
+%s [-i] [-l] [-m] [-p priority] workspace [search string]
 
 Flags:
     -h                   Print this usage message.
@@ -26,6 +28,9 @@ Flags:
                         the specified priority.
 
 %s
+
+The search string, if provided, should be a regular expression that
+will be used to filter out tasks.
 `, name, name, workspace.PriorityStrings)
 }
 
@@ -65,6 +70,15 @@ func main() {
 	ws, err := workspace.ReadFile(flag.Arg(0), shouldInit)
 	die.If(err)
 
+	searchString := `.*`
+	if flag.NArg() > 1 {
+		args := flag.Args()
+		searchString = strings.Join(args[1:], " ")
+	}
+
+	re, err := regexp.Compile(searchString)
+	die.If(err)
+
 	entryID := ws.NewEntry()
 	tasks := ws.EntryTasks(entryID).Unfinished().Filter(pri).Sort()
 	if markdown {
@@ -74,6 +88,9 @@ func main() {
 			workspace.Today().Format(workspace.DateFormat),
 			len(tasks))
 		for _, task := range tasks {
+			if !re.MatchString(task.Title) {
+				continue
+			}
 			fmt.Println("\t", task)
 			if long {
 				for _, note := range task.Notes {
