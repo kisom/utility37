@@ -121,6 +121,15 @@ func (t *Task) TagString() string {
 // A TaskSet contains a set of tasks.
 type TaskSet map[uint64]*Task
 
+func (ts TaskSet) dup() TaskSet {
+	var tasks = TaskSet{}
+	for id, task := range ts {
+		tasks[id] = task
+	}
+
+	return tasks
+}
+
 // FilterPriority returns all the tasks with at least the given priority.
 func (ts TaskSet) FilterPriority(pri Priority) TaskSet {
 	var tasks = TaskSet{}
@@ -142,6 +151,16 @@ func (ts TaskSet) FilterTag(tag string) TaskSet {
 		if contains(tag, task.Tags) {
 			tasks[id] = task
 		}
+	}
+
+	return tasks
+}
+
+// FilterTags returns all tasks with the given tags.
+func (ts TaskSet) FilterTags(tags []string) TaskSet {
+	var tasks = ts.dup()
+	for _, tag := range tags {
+		tasks = tasks.FilterTag(tag)
 	}
 
 	return tasks
