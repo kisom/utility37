@@ -210,6 +210,8 @@ func asMarkdown(tasks []*workspace.Task, long, selectStarted bool, timeRange str
 		for _, task := range tasks {
 			fmt.Printf("#### %s\n", task)
 			if long {
+				fmt.Printf("+ Completed in %s\n",
+					task.Finished.Sub(task.Created))
 				for _, note := range task.Notes {
 					fmt.Println(workspace.Wrap("+ "+note, "", 72))
 				}
@@ -296,9 +298,11 @@ func main() {
 	} else {
 		fmt.Println(header(timeRange, selectStarted))
 		if len(tasks) > 0 {
-			for i := range sorted {
+			for i, task := range sorted {
 				fmt.Println(sorted[i])
 				if long {
+					fmt.Printf("\tCompletion time: %s\n",
+						task.Finished.Sub(task.Created))
 					for _, note := range sorted[i].Notes {
 						fmt.Println(workspace.Wrap("+ "+note, "\t", 72))
 					}
