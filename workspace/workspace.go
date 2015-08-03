@@ -108,6 +108,9 @@ func (ws *Workspace) Tag(id uint64, tag string) bool {
 	}
 
 	tags = append(tags, id)
+	if ws.Tags == nil {
+		ws.Tags = map[string][]uint64{}
+	}
 	ws.Tags[tag] = tags
 
 	task.Tags = append(task.Tags, tag)

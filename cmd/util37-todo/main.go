@@ -23,6 +23,8 @@ Flags:
     -h                       Print this usage message.
     -i                       Initialise a new workspace if needed.
     -p priority              Tasks will be added with the specified priority.
+    -t tags                  List of comma-separated tags to apply to new 
+                             tasks.
 
 %s
 
@@ -43,11 +45,13 @@ func readline() string {
 
 func main() {
 	var shouldInit bool
+	var flagTags string
 	var priority = workspace.PriorityNormal.String()
 
 	flag.Usage = usage
 	flag.BoolVar(&shouldInit, "i", false, "Initialise new workspace if needed.")
 	flag.StringVar(&priority, "p", priority, "Specify the priority for new tasks.")
+	flag.StringVar(&flagTags, "t", "", "Specify tags to be applied to new tasks.")
 	flag.Parse()
 
 	if flag.NArg() == 0 {
@@ -60,6 +64,8 @@ func main() {
 		usage()
 		os.Exit(1)
 	}
+
+	tags := workspace.Tokenize(flagTags, ",")
 
 	ws, err := workspace.ReadFile(flag.Arg(0), shouldInit)
 	die.If(err)
@@ -88,6 +94,11 @@ func main() {
 		entry.Tasks = append(entry.Tasks, id)
 		ws.Tasks[id] = task
 		ws.Entries[entryID] = entry
+
+		for i := range tags {
+			ws.Tag(task.ID, tags[i])
+		}
+
 		err = workspace.WriteFile(ws)
 		die.If(err)
 	}

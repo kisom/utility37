@@ -5,6 +5,7 @@ package workspace
 import (
 	"bytes"
 	"go/doc"
+	"strings"
 	"time"
 )
 
@@ -55,4 +56,21 @@ func after(t1, t2 time.Time) bool {
 	t2d := Day(t2)
 
 	return t1d.Equal(t2d) || t1d.After(t2d)
+}
+
+// Tokenize splits the string by the given character and returns
+// trimmed tokens.
+func Tokenize(s, split string) []string {
+	ss := strings.Split(s, split)
+
+	if len(ss) == 0 {
+		return nil
+	}
+
+	tokens := make([]string, len(ss))
+	for i := range ss {
+		tokens[i] = strings.TrimSpace(ss[i])
+	}
+
+	return tokens
 }
