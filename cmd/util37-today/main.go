@@ -93,6 +93,10 @@ func main() {
 			}
 			fmt.Println("\t", task)
 			if long {
+				if len(task.Tags) > 0 {
+					fmt.Printf("\t\tTags: %s\n",
+						strings.Join(task.Tags, ", "))
+				}
 				for _, note := range task.Notes {
 					fmt.Println(workspace.Wrap("+ "+note, "\t\t", 72))
 				}
