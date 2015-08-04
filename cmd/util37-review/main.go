@@ -123,7 +123,7 @@ func main() {
 				if long {
 					fmt.Printf("\tCompletion time: %s\n", task.TimeTaken())
 					if len(task.Tags) > 0 {
-						fmt.Println("Tags:", task.TagString())
+						fmt.Println("\tTags:", task.TagString())
 					}
 					for _, note := range sorted[i].Notes {
 						fmt.Println(workspace.Wrap("+ "+note, "\t", 72))
