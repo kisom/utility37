@@ -184,7 +184,7 @@ func WriteFile(ws *Workspace) error {
 	_, err = os.Stat(filepath.Dir(name))
 	if err != nil {
 		if os.IsNotExist(err) {
-			err = os.MkdirAll(name, 0700)
+			Err = Os.Mkdirall(filepath.Dir(name), 0700)
 		}
 	}
 
