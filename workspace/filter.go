@@ -305,3 +305,25 @@ func (c *FilterChain) TimeRange() string {
 func (c *FilterChain) Len() int {
 	return len(c.chain)
 }
+
+var FilterUsage = `Filter language:
+
+Filters can be used in many places to limit the scope of the active tasks.
+
+    t:<tag> or tag:<tag>	Only show tasks with the <tag>
+    from:YYYY-MM-DD		Only show tasks after the date given
+    to:YYYY-MM-DD		Only show tasks before the date given
+    last:<dur>			Only show tasks that have occurred in the
+    				listed duration. This should be of the form
+				np, where 'n' is a number and p is a period
+				specified: 'h', 'd', 'w', or 'm' for hours,
+				days, week, and months, repectively.
+    pri:<priority>		Only show tasks with at least the priority
+    				given; priority may be one of 
+					'L' for low
+					'N' for normal
+					'H' for high
+					'!' for urgent
+
+Any non-tag words are used as a regular expression to select tasks by title.
+`
