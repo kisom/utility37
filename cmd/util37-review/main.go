@@ -16,7 +16,7 @@ func usage() {
 time range.
 
 Usage:
-%s [-h] [-l] [-m] [-p priority] workspace selector query...
+%s [-h] [-l] [-m] [-p priority] workspace query...
 
 Flags:
     -h                       Print this usage message.
@@ -25,33 +25,9 @@ Flags:
     -p priority              Filter tasks by priority; only tasks with at
                              least the specified priority.
 
+The query should follow the filter language:
 %s
-
-The selector is one of "started" or "finished".
-
-    started                  Select completed tasks based on their creation
-                             date.
-
-    finished                 Select completed tasks based on their finished
-                             date.
-
-query follows one of the following forms:
-
-    <duration>               Print all completed tasks in the given duration,
-                             starting from today.
-
-                             Duration should be either a time.Duration-
-                             parsable string, or one of "week", "2w", or
-                             "month".
-
-    since <date>             Print all completed tasks from the specified
-                             date to today.
-
-    from <date> to <date>    Print all completed tasks between the from
-                             date and the to date.
-
-All dates should have the form YYYY-MM-DD.
-`, name, name, workspace.PriorityStrings)
+`, name, name, workspace.PriorityStrings, workspace.FilterUsage)
 }
 
 func header(timeRange string) string {
