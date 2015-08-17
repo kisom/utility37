@@ -23,9 +23,9 @@ Flags:
     -l                  Print task annotations (long format).
     -m                  Display tasks in markdown format.
 
-The search string, if provided, should be a regular expression that
-will be used to filter out tasks.
-`, name, name)
+The query should follow the filter language:
+%s
+`, name, name, workspace.FilterUsage)
 }
 
 func asMarkdown(tasks []*workspace.Task, long bool) {
