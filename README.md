@@ -175,3 +175,31 @@ date.
 
 The workspaces are stored in ~/.config/util37/ and are serialised
 using Go's `encoding/gob` package.
+
+## Filters
+
+Filters can be used in many places to limit the scope of the active tasks.
+
+    t:<tag> or tag:<tag>        Only show tasks with the <tag>
+    from:YYYY-MM-DD             Only show tasks after the date given
+    to:YYYY-MM-DD               Only show tasks before the date given
+    last:<dur>                  Only show tasks that have occurred in the
+                                listed duration. This should be of the form
+                                np, where 'n' is a number and p is a period
+                                specified: 'h', 'd', 'w', or 'm' for hours,
+                                days, week, and months, repectively.
+    pri:<priority>              Only show tasks with at least the priority
+                                given; priority may be one of 
+                                        'L' for low
+                                        'N' for normal
+                                        'H' for high
+                                        '!' for urgent
+
+Any non-tag words are used as a regular expression to select tasks by
+title.
+
+Examples:
+
+* t:todo '.*review$' '^Add' : this will select all tasks tagged 'todo',
+  that start with the world 'Add' (case sensitive), and end with 'review'.
+
