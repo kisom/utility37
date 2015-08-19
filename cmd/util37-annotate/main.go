@@ -119,8 +119,16 @@ func main() {
 	ws, err := workspace.ReadFile(flag.Arg(0), shouldInit)
 	die.If(err)
 
+	var c *workspace.FilterChain
+	if flag.NArg() == 1 {
+		c, err = workspace.ProcessQuery([]string{}, workspace.StatusUncompleted)
+	} else {
+		c, err = workspace.ProcessQuery(flag.Args()[1:], workspace.StatusUncompleted)
+	}
+	die.If(err)
+
 	entryID := ws.NewEntry()
-	tasks := ws.EntryTasks(entryID).Unfinished().Sort()
+	tasks := c.Filter(ws.EntryTasks(entryID)).Sort()
 	fmt.Println("Today's TODO:")
 	for i, task := range tasks {
 		fmt.Println(i, task)
