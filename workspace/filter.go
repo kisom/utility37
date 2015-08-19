@@ -158,6 +158,8 @@ var (
 	lastRegexp      = regexp.MustCompile(`^last:` + durRegexpStr + `$`)
 	priRegexp       = regexp.MustCompile(`pri:([LNH!])$`)
 	unmatchedRegexp = regexp.MustCompile(`^\w+:.*$`)
+	uncasedRegexp   = regexp.MustCompile(`^i:.+$`)
+	explicitRegexp  = regexp.MustCompile(`^r:.+$`)
 )
 
 func DurationFilter(durs string) (Filter, time.Time, error) {
@@ -243,6 +245,12 @@ func (c *FilterChain) processQueryWord(word string) (err error) {
 		subs := priRegexp.FindStringSubmatch(word)
 		pri := PriorityFromString(subs[1])
 		f = PriorityFilter(pri)
+	case uncasedRegexp.MatchString(word):
+		query := word[2:] // First two characters are tag, rest are query.
+		f, err = TitleFilter("(?i:" + query + ")")
+	case explicitRegexp.MatchString(word):
+		query := word[2:]
+		f, err = TitleFilter(query)
 	case unmatchedRegexp.MatchString(word):
 		err = errors.New("workspace: unmatched tag " + word)
 	default:
@@ -311,6 +319,8 @@ var FilterUsage = `Filter language:
 Filters can be used in many places to limit the scope of the active tasks.
 
     t:<tag> or tag:<tag>	Only show tasks with the <tag>
+    i:<regex>			Case insensitive regexp; shorthand for
+				'(?i:regex)'.
     from:YYYY-MM-DD		Only show tasks after the date given
     to:YYYY-MM-DD		Only show tasks before the date given
     last:<dur>			Only show tasks that have occurred in the
@@ -324,6 +334,9 @@ Filters can be used in many places to limit the scope of the active tasks.
 					'N' for normal
 					'H' for high
 					'!' for urgent
+    r:<regexp>			Explicitly pass in a regular expression; this
+    				is useful for queries that might otherwise be
+				parsed as a tag.
 
 Any non-tag words are used as a regular expression to select tasks by title.
 `
