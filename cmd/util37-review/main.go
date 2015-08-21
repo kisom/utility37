@@ -27,7 +27,7 @@ Flags:
 
 The query should follow the filter language:
 %s
-`, name, name, workspace.PriorityStrings, workspace.FilterUsage)
+`, name, name, workspace.FilterUsage)
 }
 
 func header(timeRange string) string {

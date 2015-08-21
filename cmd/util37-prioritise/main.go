@@ -75,7 +75,15 @@ func main() {
 
 	entryID := ws.NewEntry()
 	for {
-		tasks := ws.EntryTasks(entryID).Unfinished().Sort()
+		var c *workspace.FilterChain
+		if flag.NArg() == 1 {
+			c, err = workspace.ProcessQuery([]string{}, workspace.StatusUncompleted)
+		} else {
+			c, err = workspace.ProcessQuery(flag.Args()[1:], workspace.StatusUncompleted)
+		}
+		die.If(err)
+
+		tasks := c.Filter(ws.EntryTasks(entryID)).Sort()
 		fmt.Println("Today's TODO:")
 		for i, task := range tasks {
 			fmt.Println(i, task)
