@@ -2,11 +2,13 @@ package workspace
 
 import (
 	"bytes"
-	"encoding/gob"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"time"
 )
 
@@ -31,6 +33,61 @@ type Workspace struct {
 	Tasks TaskSet
 
 	Tags map[string][]uint64
+}
+
+func (w *Workspace) compensate() *jWorkspace {
+	jw := &jWorkspace{
+		Name: w.Name,
+		Last: w.Last,
+		Tags: w.Tags,
+	}
+
+	jw.Entries = map[string]*Entry{}
+	for k, v := range w.Entries {
+		jw.Entries[fmt.Sprintf("%d", k)] = v
+	}
+
+	jw.Tasks = map[string]*Task{}
+	for k, v := range w.Tasks {
+		jw.Tasks[fmt.Sprintf("%d", k)] = v
+	}
+
+	return jw
+}
+
+// sigh... json.
+type jWorkspace struct {
+	Name    string
+	Last    uint64
+	Entries map[string]*Entry
+	Tasks   map[string]*Task
+	Tags    map[string][]uint64
+}
+
+func (jw *jWorkspace) rectify(w *Workspace) error {
+	w.Name = jw.Name
+	w.Last = jw.Last
+	w.Tags = jw.Tags
+
+	w.Entries = map[uint64]*Entry{}
+	for k, v := range jw.Entries {
+		ku, err := strconv.ParseUint(k, 10, 64)
+		if err != nil {
+			return err
+		}
+		w.Entries[ku] = v
+	}
+
+	w.Tasks = map[uint64]*Task{}
+	for k, v := range jw.Tasks {
+		ku, err := strconv.ParseUint(k, 10, 64)
+		if err != nil {
+			return err
+		}
+		w.Tasks[ku] = v
+	}
+
+	return nil
 }
 
 // NewWorkspace initialises a new workspace.
@@ -129,14 +186,20 @@ const configDirName = "utility37"
 // FileName returns the name for a workspace file.
 func FileName(name string) string {
 	basePath := os.Getenv("HOME")
-	return filepath.Join(basePath, ".config", "util37", name+".gob")
+	return filepath.Join(basePath, ".config", "util37", name+".json")
 }
 
 // Marshal serialises a workspace.
 func Marshal(ws *Workspace) ([]byte, error) {
+	jws := ws.compensate()
+
 	buf := &bytes.Buffer{}
-	enc := gob.NewEncoder(buf)
-	err := enc.Encode(ws)
+	out, err := json.Marshal(jws)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Indent(buf, out, "", "        ")
 	if err != nil {
 		return nil, err
 	}
@@ -146,9 +209,13 @@ func Marshal(ws *Workspace) ([]byte, error) {
 
 // Unmarshal parses a workspace.
 func Unmarshal(in []byte, ws *Workspace) error {
-	buf := bytes.NewBuffer(in)
-	dec := gob.NewDecoder(buf)
-	return dec.Decode(ws)
+	var jws jWorkspace
+	err := json.Unmarshal(in, &jws)
+	if err != nil {
+		return err
+	}
+
+	return jws.rectify(ws)
 }
 
 // ReadFile reads the named workspace from disk. If it doesn't exist,
